@@ -683,8 +683,12 @@
             <div class="newsletter">
                 <h2>Get notified when we launch</h2>
                 <p>Subscribe to our newsletter to receive updates about our website launch and exclusive content about Microsoft Security solutions.</p>
-                <form class="newsletter-form">
-                    <input type="email" class="newsletter-input" placeholder="Your email address" required>
+                <form class="newsletter-form" action="https://api.web3forms.com/submit" method="POST">
+                    <input type="hidden" name="access_key" value="92e96f51-b1fb-4e89-bfb2-b139b10ade04">
+                    <input type="hidden" name="subject" value="CyberMentor Launch Notification Request">
+                    <input type="hidden" name="from_name" value="CyberMentor Website">
+                    <input type="email" name="email" class="newsletter-input" placeholder="Your email address" required>
+                    <input type="hidden" name="redirect" value="https://cybermentor.com.au/thank-you">
                     <button type="submit" class="newsletter-button">Notify Me</button>
                 </form>
             </div>
@@ -828,30 +832,54 @@
         updateCountdown();
         const countdownInterval = setInterval(updateCountdown, 1000);
         
-        // Form submission handler
+        // Form submission handler - updated for Web3Forms integration
         const newsletterForm = document.querySelector('.newsletter-form');
         newsletterForm.addEventListener('submit', function(event) {
-            event.preventDefault();
+            // Don't prevent default as we want the form to submit to Web3Forms
             
+            // Show loading state
+            const submitButton = this.querySelector('.newsletter-button');
+            const originalText = submitButton.textContent;
+            submitButton.textContent = "Sending...";
+            submitButton.disabled = true;
+            
+            // Optional: Track submission in the console
             const emailInput = this.querySelector('.newsletter-input');
-            const email = emailInput.value.trim();
+            console.log('Submitting email to Web3Forms:', emailInput.value.trim());
             
-            if (email) {
-                // Here you would typically send this to your backend
-                console.log('Email submitted:', email);
+            // Handle form submission errors
+            window.addEventListener('error', function() {
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
                 
-                // Show success message
-                const formParent = this.parentElement;
-                this.style.display = 'none';
+                // Show error message
+                const formParent = newsletterForm.parentElement;
+                const errorMessage = document.createElement('div');
+                errorMessage.style.color = '#d32f2f';
+                errorMessage.style.fontWeight = '600';
+                errorMessage.style.marginTop = '1rem';
+                errorMessage.textContent = 'Something went wrong. Please try again.';
                 
-                const successMessage = document.createElement('div');
-                successMessage.style.color = 'var(--electric-blue)';
-                successMessage.style.fontWeight = '600';
-                successMessage.style.marginTop = '1rem';
-                successMessage.textContent = 'Thank you! We\'ll notify you when we launch.';
-                
-                formParent.appendChild(successMessage);
-            }
+                formParent.appendChild(errorMessage);
+                setTimeout(() => errorMessage.remove(), 5000);
+            });
+            
+            // If the redirect doesn't work, we'll handle success manually
+            setTimeout(function() {
+                if (document.querySelector('.newsletter-form')) {
+                    // Form still exists, so redirect didn't happen
+                    const formParent = newsletterForm.parentElement;
+                    newsletterForm.style.display = 'none';
+                    
+                    const successMessage = document.createElement('div');
+                    successMessage.style.color = 'var(--electric-blue)';
+                    successMessage.style.fontWeight = '600';
+                    successMessage.style.marginTop = '1rem';
+                    successMessage.textContent = 'Thank you! We\'ll notify you when we launch.';
+                    
+                    formParent.appendChild(successMessage);
+                }
+            }, 5000);
         });
 
         // Theme toggle functionality with automatic switching based on Singapore time
