@@ -854,11 +854,64 @@
             }
         });
 
-        // Theme toggle functionality
+        // Theme toggle functionality with automatic switching based on Singapore time
         const themeToggle = document.getElementById('themeToggle');
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
+        const htmlElement = document.documentElement;
+
+        // Function to check if it's daytime in Singapore (GMT+8)
+        function isDaytimeInSingapore() {
+            // Get current time in Singapore timezone
+            const now = new Date();
+            
+            // Convert to Singapore time (UTC+8)
+            const singaporeTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Singapore' }));
+            
+            // Get hours in 24-hour format
+            const hours = singaporeTime.getHours();
+            
+            // Consider daytime between 7:00 AM and 7:00 PM
+            return hours >= 7 && hours < 19;
+        }
+
+        // Function to set the theme based on time of day
+        function setThemeBasedOnTime() {
+            // Check for saved user preference first
+            const savedTheme = localStorage.getItem('theme');
+            
+            // If user has explicitly set a theme preference, respect that
+            if (savedTheme) {
+                if (savedTheme === 'dark') {
+                    htmlElement.classList.add('dark-mode');
+                } else {
+                    htmlElement.classList.remove('dark-mode');
+                }
+                return;
+            }
+            
+            // Otherwise set based on Singapore time
+            if (isDaytimeInSingapore()) {
+                // It's daytime in Singapore, use light mode
+                htmlElement.classList.remove('dark-mode');
+            } else {
+                // It's nighttime in Singapore, use dark mode
+                htmlElement.classList.add('dark-mode');
+            }
+        }
+
+        // Toggle theme when button is clicked
+        themeToggle.addEventListener('click', function() {
+            htmlElement.classList.toggle('dark-mode');
+            
+            // Save the user's explicit preference
+            const currentTheme = htmlElement.classList.contains('dark-mode') ? 'dark' : 'light';
+            localStorage.setItem('theme', currentTheme);
         });
+
+        // Set initial theme on page load
+        setThemeBasedOnTime();
+
+        // Check and update theme every hour (in case the user keeps the page open through day/night transition)
+        setInterval(setThemeBasedOnTime, 60 * 60 * 1000);
     </script>
 </body>
 </html>
